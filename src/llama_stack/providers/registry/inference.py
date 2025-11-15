@@ -313,4 +313,14 @@ Provider documentation
 https://docs.oracle.com/en-us/iaas/Content/generative-ai/home.htm
 """,
         ),
+
+        RemoteProviderSpec(
+            api=Api.inference,
+            adapter_type="granite",
+            provider_type="remote::granite",
+            pip_packages=["httpx"],
+            module="llama_stack.providers.remote.inference.granite",
+            config_class="llama_stack.providers.remote.inference.granite.GraniteConfig",
+            description="IBM Granite inference provider for accessing IBM's Granite language models through internal API endpoints.",
+        ),
     ]

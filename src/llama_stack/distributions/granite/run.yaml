@@ -1,0 +1,60 @@
+version: 2
+image_name: granite
+apis:
+- inference
+providers:
+  inference:
+  - provider_id: granite
+    provider_type: remote::granite
+    config:
+      base_url: ${env.MODEL_API:=https://granite-3-3-8b-instruct--apicast-production.apps.int.stc.ai.prod.us-east-1.aws.paas.redhat.com:443}
+      api_key: ${env.USER_KEY:=}
+storage:
+  backends:
+    kv_default:
+      type: kv_sqlite
+      db_path: ${env.SQLITE_STORE_DIR:=~/.llama/distributions/granite}/kvstore.db
+    sql_default:
+      type: sql_sqlite
+      db_path: ${env.SQLITE_STORE_DIR:=~/.llama/distributions/granite}/sql_store.db
+  stores:
+    metadata:
+      namespace: registry
+      backend: kv_default
+    inference:
+      table_name: inference_store
+      backend: sql_default
+      max_write_queue_size: 10000
+      num_writers: 4
+    conversations:
+      table_name: openai_conversations
+      backend: sql_default
+    prompts:
+      namespace: prompts
+      backend: kv_default
+registered_resources:
+  models:
+  - metadata: {}
+    model_id: ${env.MODEL_ID:=ibm-granite/granite-3.3-8b-instruct}
+    provider_id: granite
+    provider_model_id: ${env.MODEL_ID:=ibm-granite/granite-3.3-8b-instruct}
+  shields:
+  - shield_id: llama-guard
+    provider_id: ${env.SAFETY_MODEL:+llama-guard}
+    provider_shield_id: ${env.SAFETY_MODEL:=}
+  - shield_id: code-scanner
+    provider_id: ${env.CODE_SCANNER_MODEL:+code-scanner}
+    provider_shield_id: ${env.CODE_SCANNER_MODEL:=}
+  vector_dbs: []
+  datasets: []
+  scoring_fns: []
+  tool_groups:
+  - toolgroup_id: builtin::websearch
+    provider_id: tavily-search
+  - toolgroup_id: builtin::rag
+    provider_id: rag-runtime
+server:
+  port: 8321
+telemetry:
+  enabled: true
+

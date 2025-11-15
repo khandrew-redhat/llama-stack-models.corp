@@ -203,9 +203,20 @@ class InferenceRouter(Inference):
                 enqueue_event(metric)
 
             # these metrics will show up in the client response.
-            response.metrics = (
-                metrics if not hasattr(response, "metrics") or response.metrics is None else response.metrics + metrics
-            )
+            # Try to set metrics on the response, but handle cases where the model doesn't support extra fields
+            try:
+                if hasattr(response, "metrics"):
+                    response.metrics = (
+                        metrics if response.metrics is None else response.metrics + metrics
+                    )
+                else:
+                    # If the model doesn't have a metrics field, try to set it as an extra field
+                    # This will work if the model has extra="allow"
+                    response.metrics = metrics  # type: ignore[attr-defined]
+            except (ValueError, AttributeError):
+                # If setting metrics fails (e.g., model doesn't support extra fields), skip it
+                # Metrics are still enqueued for telemetry, just not included in the response
+                pass
         return response
 
     async def openai_chat_completion(
@@ -265,9 +276,20 @@ class InferenceRouter(Inference):
             for metric in metrics:
                 enqueue_event(metric)
             # these metrics will show up in the client response.
-            response.metrics = (
-                metrics if not hasattr(response, "metrics") or response.metrics is None else response.metrics + metrics
-            )
+            # Try to set metrics on the response, but handle cases where the model doesn't support extra fields
+            try:
+                if hasattr(response, "metrics"):
+                    response.metrics = (
+                        metrics if response.metrics is None else response.metrics + metrics
+                    )
+                else:
+                    # If the model doesn't have a metrics field, try to set it as an extra field
+                    # This will work if the model has extra="allow"
+                    response.metrics = metrics  # type: ignore[attr-defined]
+            except (ValueError, AttributeError):
+                # If setting metrics fails (e.g., model doesn't support extra fields), skip it
+                # Metrics are still enqueued for telemetry, just not included in the response
+                pass
         return response
 
     async def openai_embeddings(
